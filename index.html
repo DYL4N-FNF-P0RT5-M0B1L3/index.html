@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APPLEGAMES</title>
+    <style>
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 5px solid #ff0055; border-radius: 20px; pointer-events: none; z-index: 9999; box-shadow: inset 0 0 15px #ff0055; }
+        body { background-color: #121214; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding-bottom: 80px; }
+        header { background-color: #1a1a1e; padding: 20px; text-align: center; border-bottom: 3px solid #ff0055; }
+        header h1 { color: #ff0000; text-shadow: 0 0 15px #ff0000; margin: 0; }
+        
+        #clock-container { text-align: center; padding: 20px; background: #1a1a1e; border-bottom: 1px solid #333; }
+        #time-text { font-size: 3.5em; font-weight: bold; color: #ffffff; margin: 0; line-height: 1; text-shadow: 0 0 10px #ff0055; }
+        #date-text { font-size: 1.1em; color: #ffaa00; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .container { max-width: 1000px; margin: 20px auto; padding: 10px; }
+        .mods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .mod-card { background: #1c1c22; border-radius: 10px; padding: 15px; border: 2px solid #ff0055; cursor: pointer; transition: transform 0.2s; }
+        .mod-card:hover { transform: scale(1.05); }
+        .mod-thumb { width: 100%; height: 120px; background: #2a2a35; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; background-size: cover; background-position: center; border-radius: 5px; }
+        .btn-download { display: block; background: #ff0055; color: white; text-align: center; padding: 10px; text-decoration: none; border-radius: 5px; margin-top: 10px; font-weight: bold; border: none; cursor: pointer; width: 100%; box-sizing: border-box;}
+        
+        .settings-container { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000; }
+        .floating-btn { background: #ff0055; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; border: none; color: white; }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 2000; padding: 20px; justify-content: center; align-items: center; overflow-y: auto; }
+        .modal-content { background: #1a1a1e; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #333; text-align: center; position: relative; margin: auto; }
+        
+        .comentarios-section { margin-top: 20px; text-align: left; background: #121214; padding: 15px; border-radius: 10px; }
+        .comentarios-section textarea { width: 100%; background: #2c2c2e; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; resize: none; box-sizing: border-box; height: 60px; margin-bottom: 10px; font-family: inherit;}
+        .comentarios-section select { width: 100%; background: #2c2c2e; color: white; border: 1px solid #444; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .comentario-item { border-bottom: 1px solid #333; padding: 10px 0; }
+        .comentario-header { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; margin-bottom: 5px; }
+        .comentario-texto { font-size: 0.95em; margin: 0; color: #ddd; }
+        .estrellas { color: #ffaa00; font-weight: bold; }
+
+        .btn-opcion { display: block; width: 100%; background: #2c2c2e; border: none; padding: 12px; margin: 10px 0; color: white; border-radius: 10px; cursor: pointer; }
+        .btn-humano { background: #ff3b30; color: white; padding: 12px; text-decoration: none; display: block; border-radius: 10px; font-weight: bold; margin-top: 15px; }
+        .cerrar-x { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #8e8e93; cursor: pointer; font-weight: bold; }
+        .info-box { background: #1c1c22; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+    <header><h1>APPLEGAMES 🍎</h1></header>
+    
+    <div id="clock-container">
+        <div id="time-text">00:00:00</div>
+        <div id="date-text">Cargando...</div>
+    </div>
+
+    <div class="container">
+        <h2 style="color: #ffaa00;">FNF Mods</h2>
+        <div id="fnf-container" class="mods-grid"></div>
+        <h2 style="color: #55ff55;">Minecraft</h2>
+        <div id="mc-container" class="mods-grid"></div>
+        <h2 style="color: #00aaff;">APKs</h2>
+        <div id="apk-container" class="mods-grid"></div>
+
+        <div class="info-box">
+            <h3>📖 Guía de Uso</h3>
+            <p>1. Selecciona el mod que desees.<br>2. Revisa la información y comentarios.<br>3. Haz clic en descargar para obtener tu archivo.</p>
+        </div>
+    </div>
+
+    <div class="settings-container">
+        <div class="floating-btn" onclick="openChat()">📩</div>
+        <div class="floating-btn" onclick="openSettings()">⚙️</div>
+    </div>
+
+    <div id="mod-details-modal" class="modal">
+        <div class="modal-content">
+            <span class="cerrar-x" onclick="closeModDetails()">×</span>
+            <div id="detail-thumb" class="mod-thumb" style="height: 150px;"></div>
+            <h2 id="detail-title" style="margin-top: 10px;"></h2>
+            <a id="detail-download" class="btn-download" target="_blank">Descargar Mod</a>
+            
+            <div id="admin-tools" style="display:none; margin-top:10px;">
+                <button class="btn-download" style="background:#ffaa00;" onclick="triggerFileUpload()">CAMBIAR PORTADA</button>
+            </div>
+            
+            <div class="comentarios-section">
+                <h3 style="color: #ffaa00; margin-top: 0;">Reseñas Públicas</h3>
+                <select id="mod-rating">
+                    <option value="10">10 Estrellas ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐</option>
+                    <option value="9">9 Estrellas ⭐⭐⭐⭐⭐⭐⭐⭐⭐</option>
+                    <option value="8">8 Estrellas ⭐⭐⭐⭐⭐⭐⭐⭐</option>
+                    <option value="7">7 Estrellas ⭐⭐⭐⭐⭐⭐⭐</option>
+                    <option value="6">6 Estrellas ⭐⭐⭐⭐⭐⭐</option>
+                    <option value="5">5 Estrellas ⭐⭐⭐⭐⭐</option>
+                    <option value="4">4 Estrellas ⭐⭐⭐⭐</option>
+                    <option value="3">3 Estrellas ⭐⭐⭐</option>
+                    <option value="2">2 Estrellas ⭐⭐</option>
+                    <option value="1">1 Estrellas ⭐</option>
+                    <option value="0">0 Estrellas ❌</option>
+                </select>
+                <textarea id="mod-comment" placeholder="Escribe tu comentario..."></textarea>
+                <button class="btn-download" style="background: #28a745;" onclick="publicarComentario()">Publicar</button>
+                <div id="comments-list" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: #ff3b30;">APPLEGAMES 🍎</h2>
+            <button class="btn-opcion" onclick="alert('Funcionalidad en desarrollo...')">🚀 PROPUESTA DE MODS</button>
+            <a href="mailto:soporteapplegamesoficial@gmail.com" class="btn-humano">AYUDA CON SOPORTE HUMANO 🍎</a>
+            <p style="margin-top: 15px; cursor: pointer; color: #8e8e93;" onclick="closeChat()">Cerrar</p>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:#ff0055;">Acceso de Creador</h3>
+            <input type="password" id="admin-pass" placeholder="Contraseña" style="width:100%; padding:10px; border-radius:5px; border:none; margin-bottom:10px;">
+            <button onclick="checkAdmin()" style="background:#ff0055; border:none; color:white; width:100%; padding:10px; border-radius:10px; cursor:pointer;">Entrar</button>
+            <button onclick="closeSettings()" style="background:#333; border:none; color:white; width:100%; padding:10px; border-radius:10px; cursor:pointer; margin-top:10px;">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const baseMods = [
+            { id: 1, category: 'fnf', title: 'ENDLESS COVER', link: 'https://www.mediafire.com/file/vi33ibaukok46p4/endless_v_slice_en_espa_ol_new_update_%25281%2529.zip/file', image: '1000056392.jpeg' },
+            { id: 2, category: 'fnf', title: 'VS GARCELLO', link: 'https://www.mediafire.com/file/bk848k0cw2vog3y/smoke-em-out-struggle_v-slice_410_084_no_astc_cover_en_espanol_pro_edition.zip/file', image: '1000049905.jpeg' },
+            { id: 3, category: 'fnf', title: 'NOCTURNAL PROTOCOLO V1', link: 'https://www.mediafire.com/file/qn3yafuzhybt5zt/norturnal_protocol_remake_cover_in_spanish_v-slice_mobile.zip/file', image: '1000049018.jpeg' },
+            { id: 4, category: 'fnf', title: 'VS HUGGY WUGGY', link: 'https://www.mediafire.com/file/efy049zz7b4pbn2/vs_huggy_wuggy_360d6.zip/file', image: '1000050163.jpeg' },
+            { id: 5, category: 'fnf', title: 'PHANTAMS COVER', link: 'https://www.mediafire.com/file/iiuvsota2ujd7b5/phantasm_v_slice_cover_espa%25C3%25B1ol.zip/file', image: '1000050105.jpeg' },
+            { id: 6, category: 'fnf', title: 'PROTOCOLO NOCTURNO V2', link: 'https://www.mediafire.com/file/qxwbh1e89ohmrdl/nocturnal_protocol_remake_v2_v_slice.zip/file', image: '1000049019.jpeg' },
+            { id: 7, category: 'minecraft', title: 'Verity Bedrock', link: 'https://www.mediafire.com/file/xtxyt9y9zgcaeo/Verity_OfficialFanMade_NotByThatMob.mcaddon/file', image: '1000056370.jpeg' },
+            { id: 8, category: 'minecraft', title: 'Stalkers Bedrock Edition', link: 'https://www.mediafire.com/file/l2j4zlyfblamgyz/Twixxels_Stalkers_by_PnTMC_%255BAdd-on%255D_-_V26%252B_-_reduce_lag_1.0_.mcaddon/file', image: '1000056389.jpeg' },
+            { id: 9, category: 'minecraft', title: 'Mimizer v4 Bedrock Edition', link: 'https://www.mediafire.com/file/pw7k885qv0crz8s/The_Mimicer_V4.mcaddon/file', image: '1000056396.jpeg' },
+            { id: 10, category: 'minecraft', title: 'The Anomaly Bedrock Edition', link: 'https://www.mediafire.com/file/vs22sx9puckbs5s/The+Anomaly+Bedrock+Port+by+bredman.mcaddon/file', image: '1000056390.jpeg' },
+            { id: 11, category: 'minecraft', title: 'I Heard it too V1.4 Bedrock', link: 'https://www.mediafire.com/file/3hpevq7v0y93a4c/I_heard_it_too_v1.4.mcaddon/file', image: '1000056397.jpeg' },
+            { id: 12, category: 'minecraft', title: 'The Man From The Shadow', link: 'https://www.mediafire.com/file/0nidu442hkgtccf/the-man-from-the-shadow.mcaddon/file', image: '1000056391.jpeg' },
+            { id: 17, category: 'minecraft', title: 'Evil Hunter Bedrock', link: '#', image: '1000056398.jpeg' },
+            { id: 13, category: 'apk', title: 'Minecraft v1.26.31.1 Mobile', link: 'https://mega.nz/file/d7N1VCJb#H18mR_L6cNxH-6HzvFv8gfMHN2JoTdGaIjVZfFI8UQk', image: '1000056401.jpeg' },
+            { id: 14, category: 'apk', title: 'FNAF 1 EN ESPAÑOL', link: 'https://www.mediafire.com/file/7nysoswlpi8cm9l/Five%20Nights%20at%20Freddy%C2%B4s%20(Spanish)%20-%20espacioapk.com.apk/file', image: '1000056403.jpeg' },
+            { id: 15, category: 'apk', title: 'FNAF 2 EN ESPAÑOL', link: 'https://www.mediafire.com/file/qxuqjfb86v0d5kd/Five%20Nights%20at%20Freddys%202%20(Spanish)%20-%20espacioapk.com.apk/file', image: '1000056404.jpeg' },
+            { id: 16, category: 'apk', title: 'Psych Engine v0.6.3 Mobile', link: 'https://mega.nz/file/wjsTAJxY#FqqeKSKZJvmY3lnjfMDIAdEvKBMJas0nQbhqYWUbr64', image: '1000056405.jpeg' }
+        ];
+
+        let mods = JSON.parse(localStorage.getItem('myCustomMods')) || baseMods;
+        let currentModId = null;
+
+        function renderMods() {
+            const containers = { fnf: 'fnf-container', minecraft: 'mc-container', apk: 'apk-container' };
+            Object.values(containers).forEach(c => document.getElementById(c).innerHTML = '');
+            mods.forEach(mod => {
+                const card = document.createElement('div');
+                card.className = 'mod-card';
+                card.onclick = () => {
+                    currentModId = mod.id;
+                    document.getElementById('detail-title').innerText = mod.title;
+                    document.getElementById('detail-thumb').style.backgroundImage = `url('${mod.image}')`;
+                    document.getElementById('detail-download').href = mod.link;
+                    document.getElementById('mod-details-modal').style.display = 'flex';
+                    cargarComentarios();
+                };
+                card.innerHTML = `<div class="mod-thumb" style="background-image: url('${mod.image}')"></div><h3>${mod.title}</h3>`;
+                document.getElementById(containers[mod.category]).appendChild(card);
+            });
+        }
+
+        function checkAdmin() {
+            if(document.getElementById('admin-pass').value === 'DYLAN') {
+                document.getElementById('admin-tools').style.display = 'block';
+                alert("Modo Creador Activado");
+            }
+        }
+
+        function triggerFileUpload() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const mod = mods.find(m => m.id === currentModId);
+                    mod.image = event.target.result;
+                    localStorage.setItem('myCustomMods', JSON.stringify(mods));
+                    document.getElementById('detail-thumb').style.backgroundImage = `url('${mod.image}')`;
+                    renderMods();
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            };
+            input.click();
+        }
+
+        function publicarComentario() {
+            const texto = document.getElementById('mod-comment').value;
+            const rating = document.getElementById('mod-rating').value;
+            if(!texto.trim()) return alert("Escribe un comentario...");
+            let comentarios = JSON.parse(localStorage.getItem('coms_'+currentModId)) || [];
+            comentarios.unshift({ texto, rating, fecha: new Date().toLocaleString() });
+            localStorage.setItem('coms_'+currentModId, JSON.stringify(comentarios));
+            document.getElementById('mod-comment').value = '';
+            cargarComentarios();
+        }
+
+        function cargarComentarios() {
+            const lista = document.getElementById('comments-list');
+            lista.innerHTML = '';
+            let comentarios = JSON.parse(localStorage.getItem('coms_'+currentModId)) || [];
+            comentarios.forEach(c => {
+                let estrellas = '⭐'.repeat(Math.floor(c.rating/2));
+                lista.innerHTML += `<div class="comentario-item"><div class="comentario-header"><strong>GUEST</strong><span>${c.fecha}</span></div><div class="estrellas">${c.rating}/10 ${estrellas}</div><p class="comentario-texto">${c.texto}</p></div>`;
+            });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('date-text').textContent = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('time-text').textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+        renderMods();
+        function openChat() { document.getElementById('chat-modal').style.display = 'flex'; }
+        function closeChat() { document.getElementById('chat-modal').style.display = 'none'; }
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        function closeModDetails() { document.getElementById('mod-details-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>
